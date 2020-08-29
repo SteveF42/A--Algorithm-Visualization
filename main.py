@@ -6,7 +6,7 @@ import math
 import random
 
 
-ROWS = 70
+ROWS = 63
 target_resolution = 900 // ROWS
 WIDTH = target_resolution * ROWS
 
@@ -169,7 +169,48 @@ def h(start, end):
     x1, y1 = start
     x2, y2 = end
     return abs(x1-x2) + abs(y1-y2)
-     
+
+'''
+Description: uses BFS Breadth First Search to determin the location of the ending node
+Type draw: lambda
+Type start: Cube
+Type end: Cube
+Type rows: int
+'''
+def BFS(draw,start,end,rows):
+    stack = [start]
+    visited = []
+    x = rows // 2
+    y = rows // 2
+    parents = {}
+
+    start.make_open()
+    while stack:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = stack.pop(0)
+        if current in visited:
+
+            continue
+        visited.append(current)
+        
+        if current == end:
+            end = end.make_end()
+            make_path(draw,current,parents)
+            start = start.make_start()
+            return True
+
+        for neighbor in current.neighbors:
+            if neighbor not in visited:
+                stack.append(neighbor)
+                neighbor.make_open()
+                parents[neighbor] = current
+        current.make_closed()
+        draw()
+    return False
+
 '''
 Description: Main function which holds the pygame loop, takes care of running the actual program
 Type window: pygame.display.set_mode
@@ -281,6 +322,24 @@ def generate_maze(draw,grid,rows):
 
     pygame.event.clear()
 
+
+def board_reset(start, end,grid):
+    if start == None or end == None:
+        return
+
+    for row in grid: #clears previous simulation
+        for node in row:
+            if node.color == RED or node.color == GREEN or node.color == PURPLE:
+                node.color = WHITE 
+
+    for row in grid: # clears all values in case new walls are to be placed/destroyed
+        for node in row:
+            node.reset()
+
+    for node in grid:#calculates all neighboring nodes
+        for cube in node:
+            cube.update_neighbors(grid)
+
 '''
 Description: main game window, controls the bulk of the application
 Type window: pygame.display.set_mode()
@@ -343,25 +402,12 @@ def main(window, width):
 
             if event.type == pygame.KEYDOWN: 
                 if event.key == pygame.K_SPACE: #space to start simulation
-                    if start == None or end == None:
-                        continue
-
-                    for row in grid: #clears previous simulation
-                        for node in row:
-                            if node.color == RED or node.color == GREEN or node.color == PURPLE:
-                                node.color = WHITE 
-
-                    for row in grid: # clears all values in case new walls are to be placed/destroyed
-                        for node in row:
-                            node.reset()
-                    
-                    for node in grid:#calculates all neighboring nodes
-                        for cube in node:
-                            cube.update_neighbors(grid)
-
-                    started = False
+                    board_reset(start,end,grid)
                     Astar(lambda: draw(window,width,ROWS,grid),start,end)
 
+                if event.key == pygame.K_b: #start BFS simulation
+                    board_reset(start,end,grid)
+                    BFS(lambda: draw(window,width,ROWS,grid),start,end,ROWS)
 
                 if event.key == pygame.K_c: # completely clears the board
                     start = None

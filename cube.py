@@ -134,4 +134,4 @@ class Cube:
             self.cross_neighbors.append((grid[self.row][self.col+2],'right'))
 
         if self.col > 1: #left
-            self.cross_neighbors.append((grid[self.row][self.col-2],'left'))
+            self.cross_neighbors.append((grid[self.row][self.col- 2],'left'))
