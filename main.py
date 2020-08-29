@@ -3,6 +3,8 @@ from queue import PriorityQueue
 from tkinter import *
 from cube import Cube
 import math
+import random
+
 
 ROWS = 70
 target_resolution = 900 // ROWS
@@ -200,36 +202,46 @@ Type width: int
     
 #     top.mainloop()
 
-
-import random
+'''
+Description: uses prims algorithm to generate a self made maze
+Type grid: lambda function of draw function
+Type grid: 2D list
+Type rows: int
+'''
 def generate_maze(draw,grid,rows):
     # Prim's algorithm
+    # makes everything a wall
     for row in grid:
         for node in row:
             node.make_wall()
-
+    # gets first node somewhere in the middle
     x = rows //2
     y = rows // 2
     first = grid[x][y]
     part_of_maze = [first]
+
     # Tuple of node and opposite direction
     walls = [first.cross_neighbors[i] for i in range(0,len(first.cross_neighbors)-1)]
     first.make_white()
 
+    #while there are walls in the list
     while walls:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-
+        
+        #get random wall from the wall list
         randInt = random.randint(0,len(walls)-1)
         current_value = walls[randInt]
         current_wall = current_value[0]
         came_from = current_value[1]
 
+        #if the chosen wall happens to be in the path section continue
         if current_wall in part_of_maze:
             walls.remove(current_value)
             continue
 
+        # In my case I had to travel to path sizes and get the direction to connect the path back to the main path
         fill_wall = None
         try:
             if came_from == 'up':
@@ -243,6 +255,7 @@ def generate_maze(draw,grid,rows):
         except:
             pass
         
+        #create a path with that connection if its not an edge
         if fill_wall != None:
             fill_wall.make_white()
             part_of_maze.append(fill_wall)
@@ -251,6 +264,7 @@ def generate_maze(draw,grid,rows):
         part_of_maze.append(current_wall)
         walls.remove(current_value)
 
+        #gets all the neighbors of the current wall and puts them into the wall list if they weren't already turned into paths
         for neighbor in current_wall.cross_neighbors:
             if neighbor[0] not in part_of_maze:
                 walls.append(neighbor)
@@ -266,6 +280,12 @@ def generate_maze(draw,grid,rows):
         draw()
 
     pygame.event.clear()
+
+'''
+Description: main game window, controls the bulk of the application
+Type window: pygame.display.set_mode()
+Type width: int
+'''
 
 def main(window, width):
     # TkinterWindow()
