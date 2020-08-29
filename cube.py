@@ -20,6 +20,7 @@ class Cube:
         self.total_rows = total_rows
         self.color = WHITE
         self.neighbors = []
+        self.cross_neighbors = []
         self.F_score = float('inf')
         self.G_score = float('inf')
         self.parent = None
@@ -47,6 +48,9 @@ class Cube:
         self.G_score = float('inf')
         self.neighbors = []
         self.color = WHITE if clear_color else self.color
+
+    def make_white(self):
+        self.color = WHITE
 
     def make_start(self):
         self.color = ORANGE
@@ -107,15 +111,27 @@ class Cube:
         #         self.neighbors.append(neighbor)
 
         if self.row > 0 and not grid[self.row - 1][self.col].is_wall(): # up
-            self.neighbors.append(grid[self.row-1][self.col])
+            self.neighbors.insert(0,grid[self.row-1][self.col])
         
         if self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_wall(): #down
-            self.neighbors.append(grid[self.row+1][self.col])
+            self.neighbors.insert(1,grid[self.row+1][self.col])
 
         if self.col < self.total_rows - 1  and not grid[self.row][self.col + 1].is_wall(): #right
-            self.neighbors.append(grid[self.row][self.col+1])
+            self.neighbors.insert(2,grid[self.row][self.col+1])
 
         if self.col > 0 and not grid[self.row][self.col - 1].is_wall(): #left
-            self.neighbors.append(grid[self.row][self.col - 1])
+            self.neighbors.insert(3,grid[self.row][self.col - 1])
 
 
+    def update_cross_neighbors(self,grid):
+        if self.row > 1: # up
+            self.cross_neighbors.append((grid[self.row-2][self.col],'up'))
+        
+        if self.row < self.total_rows - 2: #down
+            self.cross_neighbors.append((grid[self.row+2][self.col],'down'))
+
+        if self.col < self.total_rows - 2: #right
+            self.cross_neighbors.append((grid[self.row][self.col+2],'right'))
+
+        if self.col > 1: #left
+            self.cross_neighbors.append((grid[self.row][self.col-2],'left'))

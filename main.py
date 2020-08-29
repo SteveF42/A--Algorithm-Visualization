@@ -1,8 +1,13 @@
 import pygame
 from queue import PriorityQueue
+from tkinter import *
 from cube import Cube
+import math
 
-WIDTH = 900
+ROWS = 70
+target_resolution = 900 // ROWS
+WIDTH = target_resolution * ROWS
+
 SCREEN = pygame.display.set_mode((WIDTH,WIDTH))
 pygame.display.set_caption("Path Finding Visualization")
 
@@ -139,6 +144,7 @@ def Astar(draw,start,end):
                 temp_f_cost = h(neighbor.get_pos(),end.get_pos()) + temp_g_cost
                 neighbor.set_F_score(temp_f_cost)
                 neighbor.set_G_score(temp_g_cost)
+                # make current parent node of its neighbor
                 parents[neighbor] = current
 
                 #if neighbor isn't already in the open set, put it in 
@@ -167,8 +173,103 @@ Description: Main function which holds the pygame loop, takes care of running th
 Type window: pygame.display.set_mode
 Type width: int
 '''
+
+
+# def TkinterWindow():
+#     def callback():
+        
+#         ROWS = int(E1.get())
+#         if ROWS:
+#             while ROWS % 5 != 0:
+#                 ROWS -= 1
+#             top.destroy()
+#             print(ROWS)
+
+
+#     top = Tk()
+#     top.title('Grid Size')
+#     top.geometry("250x80")
+#     L1 = Label(top, text="Grid Size")
+#     L1.grid(row=0, column=0)
+#     E1 = Entry(top, bd = 5)
+#     E1.grid(row=0, column=1)
+
+#     MyButton1 = Button(top, text="Submit", width=10, command=callback)
+#     MyButton1.grid(row=1, column=1)
+
+    
+#     top.mainloop()
+
+
+import random
+def generate_maze(draw,grid,rows):
+    # Prim's algorithm
+    for row in grid:
+        for node in row:
+            node.make_wall()
+
+    x = rows //2
+    y = rows // 2
+    first = grid[x][y]
+    part_of_maze = [first]
+    # Tuple of node and opposite direction
+    walls = [first.cross_neighbors[i] for i in range(0,len(first.cross_neighbors)-1)]
+    first.make_white()
+
+    while walls:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        randInt = random.randint(0,len(walls)-1)
+        current_value = walls[randInt]
+        current_wall = current_value[0]
+        came_from = current_value[1]
+
+        if current_wall in part_of_maze:
+            walls.remove(current_value)
+            continue
+
+        fill_wall = None
+        try:
+            if came_from == 'up':
+                fill_wall = current_wall.neighbors[1]
+            elif came_from == 'down':
+                fill_wall = current_wall.neighbors[0]
+            elif came_from == 'right':
+                fill_wall = current_wall.neighbors[3]
+            elif came_from == 'left':
+                fill_wall = current_wall.neighbors[2]
+        except:
+            pass
+        
+        if fill_wall != None:
+            fill_wall.make_white()
+            part_of_maze.append(fill_wall)
+
+        current_wall.make_white()
+        part_of_maze.append(current_wall)
+        walls.remove(current_value)
+
+        for neighbor in current_wall.cross_neighbors:
+            if neighbor[0] not in part_of_maze:
+                walls.append(neighbor)
+
+        draw()
+
+    # draws out edges
+    for i in range(rows):
+        grid[0][i].make_wall()
+        grid[i][0].make_wall()
+        grid[rows-1][i].make_wall()
+        grid[i][rows-1].make_wall()
+        draw()
+
+    pygame.event.clear()
+
 def main(window, width):
-    ROWS = 50
+    # TkinterWindow()
+    global ROWS
     run = True
 
     start = None
@@ -179,6 +280,8 @@ def main(window, width):
 
     started = False
     mouseClicked = False
+
+
     while run:
         draw(window,width,ROWS,grid)
 
@@ -228,6 +331,10 @@ def main(window, width):
                             if node.color == RED or node.color == GREEN or node.color == PURPLE:
                                 node.color = WHITE 
 
+                    for row in grid: # clears all values in case new walls are to be placed/destroyed
+                        for node in row:
+                            node.reset()
+                    
                     for node in grid:#calculates all neighboring nodes
                         for cube in node:
                             cube.update_neighbors(grid)
@@ -235,9 +342,6 @@ def main(window, width):
                     started = False
                     Astar(lambda: draw(window,width,ROWS,grid),start,end)
 
-                    for row in grid: # clears all values in case new walls are to be placed/destroyed
-                        for node in row:
-                            node.reset()
 
                 if event.key == pygame.K_c: # completely clears the board
                     start = None
@@ -245,10 +349,24 @@ def main(window, width):
                     for row in grid:
                         for node in row:
                             node.reset(True)
+                
+                if event.key == pygame.K_m:
+                    start = None
+                    end = None
+                    for row in grid: # clears all values in case new walls are to be placed/destroyed
+                        for node in row:
+                            node.reset(True)
+
+                    for node in grid:#calculates all neighboring nodes
+                        for cube in node:
+                            cube.update_neighbors(grid)
+                            cube.update_cross_neighbors(grid)
+
+                    generate_maze(lambda: draw(window,width,ROWS,grid),grid,ROWS)
 
 
     pygame.quit()
 
 
 if __name__ == '__main__':
-    main(SCREEN, WIDTH)
+    main(SCREEN, WIDTH)  
