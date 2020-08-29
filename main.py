@@ -322,7 +322,12 @@ def generate_maze(draw,grid,rows):
 
     pygame.event.clear()
 
-
+'''
+Description: helper function to clear the board before executing an algorithm
+Type start: Cube
+Type end: Cube
+Type grid: 2D array
+'''
 def board_reset(start, end,grid):
     if start == None or end == None:
         return
