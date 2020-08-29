@@ -1,2 +1,1 @@
-# A--Algorithm-Visualization
-<strong>A* Algorithm Visualization<strong>
+<h1>A* Algorithm Visualization<h1>
